@@ -114,6 +114,35 @@
 	$: progressPct = (timeLeft / 60) * 100;
 	$: accuracy = sessionHistory.length > 0 ? Math.round((sessionHistory.filter(h => h.isCorrect).length / sessionHistory.length) * 100) : 0;
 	$: missed = sessionHistory.filter(h => !h.isCorrect).slice(0, 3);
+
+	function configKey(c: Config): string {
+		const ops = [];
+		if (c.add) ops.push('+');
+		if (c.sub) ops.push('-');
+		if (c.mul) ops.push('×');
+		if (c.div) ops.push('÷');
+		return ops.join('') + (c.negatives ? ' (neg)' : '');
+	}
+
+	function getLeaderboards(games: GameRecord[]): { key: string; config: Config; entries: GameRecord[] }[] {
+		const map = new Map<string, { config: Config; entries: GameRecord[] }>();
+		for (const g of games) {
+			const k = configKey(g.config);
+			if (!map.has(k)) map.set(k, { config: g.config, entries: [] });
+			map.get(k)!.entries.push(g);
+		}
+		// Sort entries by score desc, then by date desc
+		for (const v of map.values()) {
+			v.entries.sort((a, b) => b.score - a.score || new Date(b.date).getTime() - new Date(a.date).getTime());
+			v.entries = v.entries.slice(0, 10); // Top 10
+		}
+		// Sort leaderboards by most recent activity
+		return Array.from(map.entries())
+			.map(([key, val]) => ({ key, ...val }))
+			.sort((a, b) => new Date(b.entries[0]?.date || 0).getTime() - new Date(a.entries[0]?.date || 0).getTime());
+	}
+
+	$: leaderboards = getLeaderboards(pastGames);
 </script>
 
 <svelte:window on:keydown={(e) => { if (e.key === 'Enter' && screen === 'menu') startGame(); }} />
@@ -248,40 +277,43 @@
 		</div>
 	{/if}
 
-	<!-- HISTORY -->
+	<!-- LEADERBOARDS -->
 	{#if screen === 'history'}
 		<div class="w-full max-w-md p-4 fade-in h-screen flex flex-col">
-			<div class="flex items-center gap-4 mb-8 pt-4 shrink-0">
-				<button on:click={() => screen = 'menu'} class="p-2 hover:bg-zinc-900 rounded-full transition-colors text-zinc-400 hover:text-white">
+			<div class="flex items-center gap-4 mb-6 pt-4 shrink-0">
+				<button on:click={() => screen = 'menu'} class="p-2 hover:bg-zinc-900 rounded-full transition-colors text-zinc-400 hover:text-white" aria-label="Back">
 					<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
 				</button>
-				<h2 class="text-xl font-semibold">Match History</h2>
+				<h2 class="text-xl font-semibold">Leaderboards</h2>
 			</div>
-			{#if pastGames.length === 0}
+			{#if leaderboards.length === 0}
 				<div class="text-center py-20 text-zinc-600">
-					<svg class="w-12 h-12 mx-auto mb-4 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+					<svg class="w-12 h-12 mx-auto mb-4 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
 					<p>No games played yet.</p>
 				</div>
 			{:else}
-				<div class="space-y-3 overflow-y-auto flex-1 pb-4">
-					{#each pastGames as game}
-						<div class="bg-zinc-900/50 border border-zinc-800/50 rounded-xl p-4 flex items-center justify-between">
-							<div>
-								<div class="flex items-center gap-2 text-xs text-zinc-500 mb-1">
-									<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-									{new Date(game.date).toLocaleDateString()}
-								</div>
-								<div class="flex gap-2">
-									{#if game.config.add}<span class="text-[10px] bg-zinc-800 px-1.5 rounded text-zinc-400">+</span>{/if}
-									{#if game.config.sub}<span class="text-[10px] bg-zinc-800 px-1.5 rounded text-zinc-400">-</span>{/if}
-									{#if game.config.mul}<span class="text-[10px] bg-zinc-800 px-1.5 rounded text-zinc-400">×</span>{/if}
-									{#if game.config.div}<span class="text-[10px] bg-zinc-800 px-1.5 rounded text-zinc-400">÷</span>{/if}
-									{#if game.config.negatives}<span class="text-[10px] bg-purple-900/30 text-purple-400 px-1.5 rounded">neg</span>{/if}
-								</div>
+				<div class="space-y-6 overflow-y-auto flex-1 pb-4">
+					{#each leaderboards as board}
+						<div class="bg-zinc-900/30 border border-zinc-800/50 rounded-xl overflow-hidden">
+							<div class="px-4 py-3 border-b border-zinc-800/50 flex items-center gap-2">
+								<svg class="w-4 h-4 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+								<span class="font-medium text-sm">{board.key}</span>
 							</div>
-							<div class="text-right">
-								<div class="text-2xl font-mono font-medium text-emerald-400">{game.score}</div>
-								<div class="text-xs text-zinc-500">{game.accuracy}% acc</div>
+							<div class="divide-y divide-zinc-800/30">
+								{#each board.entries as entry, i}
+									<div class="px-4 py-2.5 flex items-center gap-3 {i === 0 ? 'bg-yellow-500/5' : i === 1 ? 'bg-zinc-400/5' : i === 2 ? 'bg-amber-700/5' : ''}">
+										<div class="w-6 text-center font-mono text-sm {i === 0 ? 'text-yellow-500' : i === 1 ? 'text-zinc-400' : i === 2 ? 'text-amber-600' : 'text-zinc-600'}">
+											{#if i === 0}🥇{:else if i === 1}🥈{:else if i === 2}🥉{:else}{i + 1}{/if}
+										</div>
+										<div class="flex-1 min-w-0">
+											<div class="text-xs text-zinc-500">{new Date(entry.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
+										</div>
+										<div class="text-right">
+											<span class="font-mono font-medium {i === 0 ? 'text-yellow-500' : 'text-emerald-400'}">{entry.score}</span>
+											<span class="text-xs text-zinc-600 ml-1">pts</span>
+										</div>
+									</div>
+								{/each}
 							</div>
 						</div>
 					{/each}
