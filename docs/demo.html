@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Sprint</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #09090b; /* zinc-950 */
+            color: #f4f4f5; /* zinc-100 */
+        }
+        .font-mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .animate-shake {
+            animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+        }
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+        .fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.98); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        /* Custom scrollbar for history */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #18181b; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #3f3f46; 
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #52525b; 
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center overflow-hidden selection:bg-purple-500/30">
+
+    <!-- MENU SCREEN -->
+    <div id="menu-screen" class="w-full max-w-md p-4 fade-in">
+        <div class="mb-8 text-center space-y-2">
+            <div class="w-16 h-16 bg-gradient-to-br from-purple-600 to-blue-600 rounded-2xl mx-auto flex items-center justify-center shadow-lg shadow-purple-900/20 mb-6">
+                <i data-lucide="calculator" class="text-white w-8 h-8"></i>
+            </div>
+            <h1 class="text-3xl font-semibold tracking-tight">Mental Sprint</h1>
+            <p class="text-zinc-500">Master arithmetic in 60 seconds.</p>
+        </div>
+
+        <div class="space-y-6">
+            <!-- Operations -->
+            <div class="space-y-3">
+                <div class="flex items-center gap-2 text-xs font-medium text-zinc-500 uppercase tracking-wider mb-2">
+                    <i data-lucide="settings" class="w-3 h-3"></i>
+                    <span>Operations</span>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <button onclick="toggleConfig('add')" id="btn-add" class="config-btn group flex items-center justify-between w-full p-4 rounded-lg border border-zinc-800 bg-zinc-900 hover:border-zinc-700 transition-all">
+                        <span class="text-sm font-medium text-zinc-400">Addition (+)</span>
+                        <div class="checkbox w-5 h-5 rounded border border-zinc-700 bg-zinc-800 flex items-center justify-center transition-colors"></div>
+                    </button>
+                    <button onclick="toggleConfig('sub')" id="btn-sub" class="config-btn group flex items-center justify-between w-full p-4 rounded-lg border border-zinc-800 bg-zinc-900 hover:border-zinc-700 transition-all">
+                        <span class="text-sm font-medium text-zinc-400">Subtraction (-)</span>
+                        <div class="checkbox w-5 h-5 rounded border border-zinc-700 bg-zinc-800 flex items-center justify-center transition-colors"></div>
+                    </button>
+                    <button onclick="toggleConfig('mul')" id="btn-mul" class="config-btn group flex items-center justify-between w-full p-4 rounded-lg border border-zinc-800 bg-zinc-900 hover:border-zinc-700 transition-all">
+                        <span class="text-sm font-medium text-zinc-400">Multiplication (×)</span>
+                        <div class="checkbox w-5 h-5 rounded border border-zinc-700 bg-zinc-800 flex items-center justify-center transition-colors"></div>
+                    </button>
+                    <button onclick="toggleConfig('div')" id="btn-div" class="config-btn group flex items-center justify-between w-full p-4 rounded-lg border border-zinc-800 bg-zinc-900 hover:border-zinc-700 transition-all">
+                        <span class="text-sm font-medium text-zinc-400">Division (÷)</span>
+                        <div class="checkbox w-5 h-5 rounded border border-zinc-700 bg-zinc-800 flex items-center justify-center transition-colors"></div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Difficulty -->
+            <div class="space-y-3">
+                <div class="flex items-center gap-2 text-xs font-medium text-zinc-500 uppercase tracking-wider mb-2">
+                    <i data-lucide="activity" class="w-3 h-3"></i>
+                    <span>Difficulty</span>
+                </div>
+                <button onclick="toggleConfig('negatives')" id="btn-negatives" class="config-btn group flex items-center justify-between w-full p-4 rounded-lg border border-zinc-800 bg-zinc-900 hover:border-zinc-700 transition-all">
+                    <span class="text-sm font-medium text-zinc-400">Negative Numbers</span>
+                    <div class="checkbox w-5 h-5 rounded border border-zinc-700 bg-zinc-800 flex items-center justify-center transition-colors"></div>
+                </button>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex gap-3">
+                <button onclick="showScreen('history')" class="h-12 w-14 bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 hover:border-zinc-700 text-zinc-400 rounded-lg transition-all flex items-center justify-center" title="View History">
+                    <i data-lucide="history" class="w-5 h-5"></i>
+                </button>
+                <button onclick="startGame()" class="flex-1 h-12 bg-zinc-100 hover:bg-white text-zinc-950 font-medium rounded-lg transition-all flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(255,255,255,0.1)] active:scale-[0.98]">
+                    Start Sprint <span class="hidden md:inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 ml-2 text-[10px] font-bold text-zinc-400 bg-zinc-800 border border-zinc-700 rounded font-mono">↵</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- GAME SCREEN -->
+    <div id="game-screen" class="hidden w-full h-screen flex-col items-center justify-center relative fade-in">
+        
+        <!-- Abandon Button -->
+        <button onclick="abandonGame()" class="absolute top-4 left-4 p-2 text-zinc-500 hover:text-white hover:bg-zinc-900 rounded-full transition-all z-20" title="Abandon Game">
+            <i data-lucide="x-circle" class="w-7 h-7"></i>
+        </button>
+
+        <!-- Progress Bar -->
+        <div class="fixed top-0 left-0 w-full h-1 bg-zinc-900">
+            <div id="progress-bar" class="h-full bg-gradient-to-r from-purple-500 to-blue-500 transition-all duration-1000 ease-linear" style="width: 100%"></div>
+        </div>
+
+        <div class="w-full max-w-2xl px-4">
+            <!-- Header Stats -->
+            <div class="flex justify-between items-center mb-12">
+                <div class="flex flex-col">
+                    <span class="text-zinc-500 text-xs uppercase tracking-wider font-medium">Time</span>
+                    <span id="timer-display" class="text-2xl font-mono text-zinc-200">00:60</span>
+                </div>
+                <div class="flex flex-col items-end">
+                    <span class="text-zinc-500 text-xs uppercase tracking-wider font-medium">Score</span>
+                    <span id="score-display" class="text-2xl font-mono text-emerald-400">0</span>
+                </div>
+            </div>
+
+            <!-- Problem Area -->
+            <div class="text-center space-y-12">
+                <div class="h-32 flex items-center justify-center">
+                    <h2 id="question-display" class="text-7xl md:text-8xl font-medium tracking-tight"></h2>
+                </div>
+
+                <form id="game-form" class="relative max-w-xs mx-auto" onsubmit="handleAnswer(event)">
+                    <input 
+                        id="user-input"
+                        type="text" 
+                        inputmode="numeric"
+                        pattern="[0-9\-]*"
+                        class="w-full bg-transparent border-b-2 border-zinc-700 text-center text-4xl py-4 focus:outline-none focus:border-purple-500 transition-colors font-mono text-white placeholder-zinc-800"
+                        placeholder="?"
+                        autocomplete="off"
+                    />
+                    <div class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-12 opacity-50 hidden md:block">
+                        <span class="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 ml-2 text-[10px] font-bold text-zinc-400 bg-zinc-800 border border-zinc-700 rounded font-mono">↵</span>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- RESULT SCREEN -->
+    <div id="result-screen" class="hidden w-full max-w-md p-4 fade-in">
+        <div class="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-8 mb-6 text-center">
+            <div class="w-16 h-16 bg-zinc-800 rounded-full flex items-center justify-center mx-auto mb-6">
+                <i data-lucide="trophy" class="text-yellow-500 w-8 h-8"></i>
+            </div>
+            
+            <h2 class="text-3xl font-semibold mb-2">Time's Up!</h2>
+            <p class="text-zinc-500 mb-8">Here is how you performed</p>
+
+            <div class="grid grid-cols-2 gap-4 mb-8">
+                <div class="bg-zinc-950 border border-zinc-800 p-4 rounded-xl">
+                    <div class="text-zinc-500 text-xs uppercase tracking-wider mb-1">Total Score</div>
+                    <div id="final-score" class="text-3xl font-mono text-purple-400">0</div>
+                </div>
+                <div class="bg-zinc-950 border border-zinc-800 p-4 rounded-xl">
+                    <div class="text-zinc-500 text-xs uppercase tracking-wider mb-1">Accuracy</div>
+                    <div id="final-accuracy" class="text-3xl font-mono text-zinc-300">0%</div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <button onclick="showScreen('menu')" class="w-full py-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg transition-colors font-medium text-sm flex items-center justify-center gap-2">
+                    Settings
+                </button>
+                <button onclick="startGame()" class="w-full py-3 bg-white hover:bg-zinc-200 text-zinc-950 rounded-lg transition-colors font-medium text-sm flex items-center justify-center gap-2">
+                    <i data-lucide="rotate-ccw" class="w-4 h-4"></i> Play Again
+                </button>
+            </div>
+        </div>
+
+        <!-- Missed Problems List -->
+        <div id="missed-problems-container" class="space-y-2 hidden">
+            <p class="text-xs font-medium text-zinc-500 uppercase tracking-wider pl-2">Missed Problems</p>
+            <div id="missed-list" class="space-y-2"></div>
+        </div>
+    </div>
+
+    <!-- HISTORY SCREEN -->
+    <div id="history-screen" class="hidden w-full max-w-md p-4 fade-in h-screen flex flex-col">
+        <div class="flex items-center gap-4 mb-8 pt-4 shrink-0">
+            <button onclick="showScreen('menu')" class="p-2 hover:bg-zinc-900 rounded-full transition-colors text-zinc-400 hover:text-white">
+                <i data-lucide="arrow-left" class="w-5 h-5"></i>
+            </button>
+            <h2 class="text-xl font-semibold">Match History</h2>
+        </div>
+
+        <div id="history-list" class="space-y-3 overflow-y-auto flex-1 pb-4">
+            <!-- Populated via JS -->
+        </div>
+        
+        <div id="history-empty" class="hidden text-center py-20 text-zinc-600">
+            <i data-lucide="history" class="w-12 h-12 mx-auto mb-4 opacity-20"></i>
+            <p>No games played yet.</p>
+        </div>
+    </div>
+
+    <script>
+        // --- STATE MANAGEMENT ---
+        const config = {
+            add: true,
+            sub: true,
+            mul: true,
+            div: false,
+            negatives: false
+        };
+
+        let gameState = {
+            score: 0,
+            timeLeft: 60,
+            timerInterval: null,
+            currentProblem: null,
+            sessionHistory: [],
+            pastGames: []
+        };
+
+        // Load History
+        try {
+            const saved = localStorage.getItem('mathSprintHistory');
+            if (saved) gameState.pastGames = JSON.parse(saved);
+        } catch (e) {
+            console.error("Could not load history", e);
+        }
+
+        // --- DOM ELEMENTS ---
+        const screens = {
+            menu: document.getElementById('menu-screen'),
+            game: document.getElementById('game-screen'),
+            result: document.getElementById('result-screen'),
+            history: document.getElementById('history-screen')
+        };
+        const inputEl = document.getElementById('user-input');
+
+        // --- CORE FUNCTIONS ---
+
+        function init() {
+            updateConfigUI();
+            lucide.createIcons();
+        }
+
+        function showScreen(screenName) {
+            Object.values(screens).forEach(el => el.classList.add('hidden'));
+            screens[screenName].classList.remove('hidden');
+            
+            if (screenName === 'history') renderHistory();
+            
+            // Re-trigger icon rendering for new content
+            setTimeout(() => lucide.createIcons(), 10);
+        }
+
+        function toggleConfig(key) {
+            // Check if it's the last active operation
+            const activeOps = ['add', 'sub', 'mul', 'div'].filter(k => config[k]).length;
+            if (activeOps === 1 && config[key] && key !== 'negatives') return; // Prevent disabling all
+
+            config[key] = !config[key];
+            updateConfigUI();
+        }
+
+        function updateConfigUI() {
+            for (const [key, value] of Object.entries(config)) {
+                const btn = document.getElementById(`btn-${key}`);
+                const checkbox = btn.querySelector('.checkbox');
+                const text = btn.querySelector('span');
+
+                if (value) {
+                    btn.classList.add('bg-zinc-800/50', 'border-purple-500/50', 'shadow-[0_0_15px_rgba(168,85,247,0.15)]');
+                    btn.classList.remove('bg-zinc-900', 'border-zinc-800');
+                    checkbox.classList.add('bg-purple-600', 'border-purple-600');
+                    checkbox.classList.remove('border-zinc-700', 'bg-zinc-800');
+                    checkbox.innerHTML = '<i data-lucide="check" class="text-white w-3 h-3"></i>';
+                    text.classList.remove('text-zinc-400');
+                    text.classList.add('text-zinc-100');
+                } else {
+                    btn.classList.remove('bg-zinc-800/50', 'border-purple-500/50', 'shadow-[0_0_15px_rgba(168,85,247,0.15)]');
+                    btn.classList.add('bg-zinc-900', 'border-zinc-800');
+                    checkbox.classList.remove('bg-purple-600', 'border-purple-600');
+                    checkbox.classList.add('border-zinc-700', 'bg-zinc-800');
+                    checkbox.innerHTML = '';
+                    text.classList.add('text-zinc-400');
+                    text.classList.remove('text-zinc-100');
+                }
+            }
+            lucide.createIcons();
+        }
+
+        // --- GAME LOGIC ---
+
+        function startGame() {
+            gameState.score = 0;
+            gameState.timeLeft = 60;
+            gameState.sessionHistory = [];
+            
+            updateScoreUI();
+            updateTimerUI();
+            
+            showScreen('game');
+            generateProblem();
+            
+            // Start Timer
+            if (gameState.timerInterval) clearInterval(gameState.timerInterval);
+            gameState.timerInterval = setInterval(() => {
+                gameState.timeLeft--;
+                updateTimerUI();
+                if (gameState.timeLeft <= 0) {
+                    endGame();
+                }
+            }, 1000);
+
+            // Focus Input
+            setTimeout(() => inputEl.focus(), 100);
+        }
+
+        function abandonGame() {
+            if (gameState.timerInterval) clearInterval(gameState.timerInterval);
+            showScreen('menu');
+        }
+
+        function generateProblem() {
+            const ops = [];
+            if (config.add) ops.push('+');
+            if (config.sub) ops.push('-');
+            if (config.mul) ops.push('*');
+            if (config.div) ops.push('/');
+
+            const operator = ops[Math.floor(Math.random() * ops.length)];
+            
+            // 1 to 12
+            let num1 = Math.floor(Math.random() * 12) + 1;
+            let num2 = Math.floor(Math.random() * 12) + 1;
+
+            if (config.negatives) {
+                if (Math.random() > 0.5) num1 *= -1;
+                if (Math.random() > 0.5) num2 *= -1;
+            }
+
+            let question = '';
+            let answer = 0;
+
+            switch (operator) {
+                case '+':
+                    answer = num1 + num2;
+                    break;
+                case '-':
+                    answer = num1 - num2;
+                    break;
+                case '*':
+                    answer = num1 * num2;
+                    break;
+                case '/':
+                    // Ensure clean integer division
+                    num1 = num1 * num2; 
+                    answer = num1 / num2;
+                    break;
+            }
+
+            const formatNum = (n) => n < 0 ? `(${n})` : n;
+            
+            if (operator === '/') {
+                question = `${formatNum(num1)} ÷ ${formatNum(num2)}`;
+            } else if (operator === '*') {
+                question = `${formatNum(num1)} × ${formatNum(num2)}`;
+            } else {
+                question = `${formatNum(num1)} ${operator} ${formatNum(num2)}`;
+            }
+
+            gameState.currentProblem = { question, answer };
+            
+            // Update UI
+            document.getElementById('question-display').textContent = question;
+            inputEl.value = '';
+            inputEl.className = "w-full bg-transparent border-b-2 border-zinc-700 text-center text-4xl py-4 focus:outline-none focus:border-purple-500 transition-colors font-mono text-white placeholder-zinc-800";
+        }
+
+        function handleAnswer(e) {
+            e.preventDefault();
+            const val = parseInt(inputEl.value);
+            if (isNaN(val)) return;
+
+            const isCorrect = val === gameState.currentProblem.answer;
+
+            // Record history
+            gameState.sessionHistory.push({
+                q: gameState.currentProblem.question,
+                correct: gameState.currentProblem.answer,
+                user: val,
+                isCorrect: isCorrect
+            });
+
+            if (isCorrect) {
+                gameState.score++;
+                updateScoreUI();
+                // Visual feedback: Green
+                inputEl.classList.remove('border-zinc-700', 'focus:border-purple-500');
+                inputEl.classList.add('border-emerald-500', 'text-emerald-500');
+                
+                setTimeout(() => {
+                    generateProblem();
+                }, 150);
+            } else {
+                // Visual feedback: Red + Shake
+                inputEl.classList.remove('border-zinc-700', 'focus:border-purple-500');
+                inputEl.classList.add('border-red-500', 'text-red-500', 'animate-shake');
+                
+                setTimeout(() => {
+                    inputEl.classList.remove('animate-shake');
+                    generateProblem();
+                }, 400);
+            }
+        }
+
+        function endGame() {
+            clearInterval(gameState.timerInterval);
+            
+            // Calculate stats
+            const correctCount = gameState.sessionHistory.filter(h => h.isCorrect).length;
+            const totalCount = gameState.sessionHistory.length;
+            const accuracy = totalCount > 0 ? Math.round((correctCount / totalCount) * 100) : 0;
+
+            // Save to history
+            const record = {
+                id: Date.now(),
+                date: new Date().toISOString(),
+                score: gameState.score,
+                accuracy: accuracy,
+                config: { ...config }
+            };
+            
+            gameState.pastGames.unshift(record);
+            gameState.pastGames = gameState.pastGames.slice(0, 50); // Limit to 50
+            localStorage.setItem('mathSprintHistory', JSON.stringify(gameState.pastGames));
+
+            // Populate Result Screen
+            document.getElementById('final-score').textContent = gameState.score;
+            const accEl = document.getElementById('final-accuracy');
+            accEl.textContent = `${accuracy}%`;
+            accEl.className = `text-3xl font-mono ${accuracy > 80 ? 'text-emerald-400' : 'text-zinc-300'}`;
+
+            // Show Missed Problems
+            const missedContainer = document.getElementById('missed-problems-container');
+            const missedList = document.getElementById('missed-list');
+            const missed = gameState.sessionHistory.filter(h => !h.isCorrect).slice(0, 3);
+            
+            missedList.innerHTML = '';
+            if (missed.length > 0) {
+                missedContainer.classList.remove('hidden');
+                missed.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = "flex justify-between items-center bg-zinc-900/30 border border-red-500/20 px-4 py-3 rounded-lg text-sm";
+                    div.innerHTML = `
+                        <span class="text-zinc-300">${item.q}</span>
+                        <div class="flex gap-4">
+                            <span class="text-red-400 line-through decoration-red-500/50">${item.user}</span>
+                            <span class="text-emerald-400">${item.correct}</span>
+                        </div>
+                    `;
+                    missedList.appendChild(div);
+                });
+            } else {
+                missedContainer.classList.add('hidden');
+            }
+
+            showScreen('result');
+        }
+
+        // --- UI UPDATERS ---
+
+        function updateScoreUI() {
+            document.getElementById('score-display').textContent = gameState.score;
+        }
+
+        function updateTimerUI() {
+            const el = document.getElementById('timer-display');
+            el.textContent = `00:${gameState.timeLeft.toString().padStart(2, '0')}`;
+            el.className = `text-2xl font-mono ${gameState.timeLeft < 10 ? 'text-red-400' : 'text-zinc-200'}`;
+
+            const pct = (gameState.timeLeft / 60) * 100;
+            document.getElementById('progress-bar').style.width = `${pct}%`;
+        }
+
+        function renderHistory() {
+            const list = document.getElementById('history-list');
+            const empty = document.getElementById('history-empty');
+            
+            list.innerHTML = '';
+            
+            if (gameState.pastGames.length === 0) {
+                empty.classList.remove('hidden');
+            } else {
+                empty.classList.add('hidden');
+                gameState.pastGames.forEach(game => {
+                    const date = new Date(game.date).toLocaleDateString();
+                    
+                    let badges = '';
+                    if (game.config.add) badges += '<span class="text-[10px] bg-zinc-800 px-1.5 rounded text-zinc-400">+</span>';
+                    if (game.config.sub) badges += '<span class="text-[10px] bg-zinc-800 px-1.5 rounded text-zinc-400">-</span>';
+                    if (game.config.mul) badges += '<span class="text-[10px] bg-zinc-800 px-1.5 rounded text-zinc-400">×</span>';
+                    if (game.config.div) badges += '<span class="text-[10px] bg-zinc-800 px-1.5 rounded text-zinc-400">÷</span>';
+                    if (game.config.negatives) badges += '<span class="text-[10px] bg-purple-900/30 text-purple-400 px-1.5 rounded">neg</span>';
+
+                    const item = document.createElement('div');
+                    item.className = "bg-zinc-900/50 border border-zinc-800/50 rounded-xl p-4 flex items-center justify-between";
+                    item.innerHTML = `
+                        <div>
+                            <div class="flex items-center gap-2 text-xs text-zinc-500 mb-1">
+                                <i data-lucide="calendar" class="w-3 h-3"></i>
+                                ${date}
+                            </div>
+                            <div class="flex gap-2">
+                                ${badges}
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-2xl font-mono font-medium text-emerald-400">${game.score}</div>
+                            <div class="text-xs text-zinc-500">${game.accuracy}% acc</div>
+                        </div>
+                    `;
+                    list.appendChild(item);
+                });
+            }
+        }
+
+        // Initialize
+        init();
+
+    </script>
+</body>
+</html>
