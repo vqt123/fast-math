@@ -3,13 +3,13 @@
 	import { browser } from '$app/environment';
 
 	type Screen = 'menu' | 'game' | 'result' | 'history';
-	type Config = { add: boolean; sub: boolean; mul: boolean; div: boolean; negatives: boolean };
+	type Config = { add: boolean; sub: boolean; mul: boolean; div: boolean; negatives: boolean; doubleDigits: boolean };
 	type Problem = { question: string; answer: number };
 	type HistoryItem = { q: string; correct: number; user: number; isCorrect: boolean };
 	type GameRecord = { id: number; date: string; score: number; accuracy: number; config: Config };
 
 	let screen: Screen = 'menu';
-	let config: Config = { add: true, sub: true, mul: true, div: false, negatives: false };
+	let config: Config = { add: true, sub: true, mul: true, div: false, negatives: false, doubleDigits: false };
 	let score = 0;
 	let timeLeft = 60;
 	let timerInterval: ReturnType<typeof setInterval> | null = null;
@@ -29,7 +29,7 @@
 	});
 
 	function toggleConfig(key: keyof Config) {
-		if (key !== 'negatives') {
+		if (key !== 'negatives' && key !== 'doubleDigits') {
 			const activeOps = (['add', 'sub', 'mul', 'div'] as const).filter(k => config[k]).length;
 			if (activeOps === 1 && config[key]) return;
 		}
@@ -64,8 +64,10 @@
 		if (config.mul) ops.push('*');
 		if (config.div) ops.push('/');
 		const operator = ops[Math.floor(Math.random() * ops.length)];
-		let num1 = Math.floor(Math.random() * 12) + 1;
-		let num2 = Math.floor(Math.random() * 12) + 1;
+		const max = config.doubleDigits ? 99 : 12;
+		const min = config.doubleDigits ? 10 : 1;
+		let num1 = Math.floor(Math.random() * (max - min + 1)) + min;
+		let num2 = Math.floor(Math.random() * (max - min + 1)) + min;
 		if (config.negatives) {
 			if (Math.random() > 0.5) num1 *= -1;
 			if (Math.random() > 0.5) num2 *= -1;
@@ -121,7 +123,10 @@
 		if (c.sub) ops.push('-');
 		if (c.mul) ops.push('×');
 		if (c.div) ops.push('÷');
-		return ops.join('') + (c.negatives ? ' (neg)' : '');
+		const mods = [];
+		if (c.negatives) mods.push('neg');
+		if (c.doubleDigits) mods.push('2x');
+		return ops.join('') + (mods.length ? ` (${mods.join(', ')})` : '');
 	}
 
 	function getLeaderboards(games: GameRecord[]): { key: string; config: Config; entries: GameRecord[] }[] {
@@ -180,12 +185,20 @@
 						<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
 						<span>Difficulty</span>
 					</div>
-					<button on:click={() => toggleConfig('negatives')} class="group flex items-center justify-between w-full p-4 rounded-lg border transition-all {config.negatives ? 'bg-zinc-800/50 border-purple-500/50 shadow-[0_0_15px_rgba(168,85,247,0.15)]' : 'bg-zinc-900 border-zinc-800 hover:border-zinc-700'}">
-						<span class="text-sm font-medium {config.negatives ? 'text-zinc-100' : 'text-zinc-400'}">Negative Numbers</span>
-						<div class="w-5 h-5 rounded flex items-center justify-center transition-colors {config.negatives ? 'bg-purple-600 border-purple-600' : 'border border-zinc-700 bg-zinc-800'}">
-							{#if config.negatives}<svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>{/if}
-						</div>
-					</button>
+					<div class="grid grid-cols-2 gap-3">
+						<button on:click={() => toggleConfig('negatives')} class="group flex items-center justify-between w-full p-4 rounded-lg border transition-all {config.negatives ? 'bg-zinc-800/50 border-purple-500/50 shadow-[0_0_15px_rgba(168,85,247,0.15)]' : 'bg-zinc-900 border-zinc-800 hover:border-zinc-700'}">
+							<span class="text-sm font-medium {config.negatives ? 'text-zinc-100' : 'text-zinc-400'}">Negatives</span>
+							<div class="w-5 h-5 rounded flex items-center justify-center transition-colors {config.negatives ? 'bg-purple-600 border-purple-600' : 'border border-zinc-700 bg-zinc-800'}">
+								{#if config.negatives}<svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>{/if}
+							</div>
+						</button>
+						<button on:click={() => toggleConfig('doubleDigits')} class="group flex items-center justify-between w-full p-4 rounded-lg border transition-all {config.doubleDigits ? 'bg-zinc-800/50 border-purple-500/50 shadow-[0_0_15px_rgba(168,85,247,0.15)]' : 'bg-zinc-900 border-zinc-800 hover:border-zinc-700'}">
+							<span class="text-sm font-medium {config.doubleDigits ? 'text-zinc-100' : 'text-zinc-400'}">Double Digits</span>
+							<div class="w-5 h-5 rounded flex items-center justify-center transition-colors {config.doubleDigits ? 'bg-purple-600 border-purple-600' : 'border border-zinc-700 bg-zinc-800'}">
+								{#if config.doubleDigits}<svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>{/if}
+							</div>
+						</button>
+					</div>
 				</div>
 				<div class="flex gap-3">
 					<button on:click={() => screen = 'history'} class="h-12 w-14 bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 hover:border-zinc-700 text-zinc-400 rounded-lg transition-all flex items-center justify-center" title="View History">
