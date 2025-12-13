@@ -20,6 +20,7 @@
 	let inputEl: HTMLInputElement;
 	let inputClass = 'border-zinc-700 focus:border-purple-500 text-white';
 	let shaking = false;
+	let lastUnanswered: Problem | null = null;
 
 	onMount(() => {
 		if (browser) {
@@ -42,6 +43,7 @@
 		sessionHistory = [];
 		userInput = '';
 		inputClass = 'border-zinc-700 focus:border-purple-500 text-white';
+		lastUnanswered = null;
 		screen = 'game';
 		generateProblem();
 		if (timerInterval) clearInterval(timerInterval);
@@ -105,6 +107,7 @@
 
 	function endGame() {
 		if (timerInterval) clearInterval(timerInterval);
+		lastUnanswered = currentProblem.question ? { ...currentProblem } : null;
 		const correctCount = sessionHistory.filter(h => h.isCorrect).length;
 		const accuracy = sessionHistory.length > 0 ? Math.round((correctCount / sessionHistory.length) * 100) : 0;
 		const record: GameRecord = { id: Date.now(), date: new Date().toISOString(), score, accuracy, config: { ...config } };
@@ -273,6 +276,15 @@
 					</button>
 				</div>
 			</div>
+			{#if lastUnanswered}
+				<div class="space-y-2 mb-4">
+					<p class="text-xs font-medium text-zinc-500 uppercase tracking-wider pl-2">Last Problem</p>
+					<div class="flex justify-between items-center bg-zinc-900/30 border border-amber-500/20 px-4 py-3 rounded-lg text-sm">
+						<span class="text-zinc-300">{lastUnanswered.question}</span>
+						<span class="text-amber-400">= {lastUnanswered.answer}</span>
+					</div>
+				</div>
+			{/if}
 			{#if missed.length > 0}
 				<div class="space-y-2">
 					<p class="text-xs font-medium text-zinc-500 uppercase tracking-wider pl-2">Missed Problems</p>
